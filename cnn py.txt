@@ -1,0 +1,107 @@
+From lasagne.layers import Pool2DLayer as PoolLayer
+from lasagne.layers import Conv2DLayer as ConvLayer
+from lasagne.nonlinearities import softmax
+from lasagne.layers import ElemwiseMergeLayer
+			
+
+			num_of_classes = -1 #total number of subjects (people)
+			
+
+	@@ -124,34 +125,39 @@ def Deep_ID2(input_var=None):
+			    nt = {}
+			    nt['input'] = InputLayer(shape=(None, 3, 64, 64),input_var=input_var)
+			    nt['conv1_1'] = ConvLayer(
+			        nt['input'], 64, 4, pad=1)#, flip_filters=False)
+			        nt['input'], 20, 3, pad=0)#, flip_filters=False)
+			#    nt['conv1_2'] = ConvLayer(
+			#        nt['conv1_1'], 64, 3, pad=1)#, flip_filters=False)
+			    nt['pool1'] = PoolLayer(nt['conv1_1'], 2)
+			
+
+			    nt['conv2_1'] = ConvLayer(
+			        nt['pool1'], 32, 2, pad=2)#, flip_filters=False)
+			        nt['pool1'], 40, 4, pad=0)#, flip_filters=False)
+			#    nt['conv2_2'] = ConvLayer(
+			#        nt['conv2_1'], 32, 3, pad=1)#, flip_filters=False)
+			    nt['pool2'] = PoolLayer(nt['conv2_1'], 2)
+			
+
+			    nt['conv3_1'] = ConvLayer(
+			        nt['pool2'], 16, 3, pad=2)#, flip_filters=False)
+			        nt['pool2'], 60, 3, pad=0)#, flip_filters=False)
+			#    nt['conv3_2'] = ConvLayer(
+			#        nt['conv3_1'], 16, 3, pad=1)#, flip_filters=False)
+			    nt['pool3'] = PoolLayer(nt['conv3_1'], 2)
+			
+
+			    nt['conv4_1'] = ConvLayer(
+			        nt['pool3'], 7, 2, pad=0)#, flip_filters=False)
+			        nt['pool3'], 80, 2, pad=0)#, flip_filters=False)
+			#    nt['conv4_2'] = ConvLayer(
+			#        nt['conv4_1'], 8, 3, pad=1)#, flip_filters=False)
+			
+
+			    nt['fc6'] = DenseLayer(nt['conv4_1'], num_units=512)
+			    nt['fc6_dropout'] = DropoutLayer(nt['fc6'], p=0.5)
+			#    nt['fc7'] = DenseLayer(nt['fc6_dropout'], num_units=1024)
+			    nt['fc6'] = DenseLayer(nt['conv4_1'], num_units=160)
+			#    nt['fc6_dropout'] = DropoutLayer(nt['fc6'], p=0)
+			
+
+			    nt['fc7'] = DenseLayer(nt['pool3'], num_units=160)
+			#    nt['fc7_dropout'] = DropoutLayer(nt['fc7'], p=0)
+			
+
+			
+
+			    nt['merge'] = ElemwiseMergeLayer([nt['fc6'],nt['fc7']],merge_function=theano.tensor.add)
+			
+
+			    nt['fc8'] = DenseLayer(
+			        nt['fc6_dropout'], num_units=num_of_classes, nonlinearity=None)
+			        nt['merge'], num_units=num_of_classes, nonlinearity=None)
+			    nt['prob'] = NonlinearityLayer(nt['fc8'], softmax)
+			
+
+			
+
+	@@ -226,7 +232,7 @@ def Two_layer(input_var=None):
+			
+
+			
+
+			if __name__ == '__main__':
+			
+			  
+			    dt = {0:{}}
+			    ipd = 10
+			    labels = []
+	@@ -315,8 +321,11 @@ def Two_layer(input_var=None):
+			    params = lasagne.layers.get_all_params(ntwork.values(), trainable=True)
+			
+
+			
+
+			    updates = lasagne.updates.sgd(
+			            loss, params, learning_rate=0.01)
+			#    updates = lasagne.updates.sgd(
+			#            loss, params, learning_rate=0.01)
+			
+
+			    updates = lasagne.updates.adagrad(
+			           loss, params, learning_rate=0.01)
+			
+
+			#    updates = lasagne.updates.adam(loss, params)        
+			
+
+	@@ -339,7 +348,7 @@ def Two_layer(input_var=None):
+			    print("Starting training...")
+			    # We iterate over epochs:
+			    bta= -1
+			    for epoch in range(50):
+			    for epoch in range(40):
+			        # In each epoch, we do a full pass over the training dt:
+			        te= 0
+			        tb= 0
+
